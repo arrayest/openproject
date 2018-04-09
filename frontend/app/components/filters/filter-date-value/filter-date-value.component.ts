@@ -26,21 +26,20 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-import {filtersModule} from '../../../angular-modules';
 import {QueryFilterInstanceResource} from '../../api/api-v3/hal-resources/query-filter-instance-resource.service';
+import {I18nToken, TimezoneServiceToken} from 'core-app/angular4-transition-utils';
+import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
 
-export class BooleanValueController {
-  public filter:QueryFilterInstanceResource;
+@Component({
+  selector: 'filter-date-value',
+  template: require('!!raw-loader!./filter-date-value.component.html')
+})
+export class FilterDateValueComponent {
+  @Input() public filter:QueryFilterInstanceResource;
+  @Output() public filterChanged:EventEmitter<QueryFilterInstanceResource>;
 
-  public text:{ [key: string]: string; };
-
-  constructor(public $scope:ng.IScope,
-              private I18n:op.I18n) {
-    this.text = {
-      placeholder: I18n.t('js.placeholders.selection'),
-      true: I18n.t('js.general_text_Yes'),
-      false: I18n.t('js.general_text_No')
-    };
+  constructor(@Inject(TimezoneServiceToken) readonly TimezoneService:any,
+              @Inject(I18nToken) readonly I18n:op.I18n) {
   }
 
   public get value() {
@@ -48,30 +47,31 @@ export class BooleanValueController {
   }
 
   public set value(val) {
-    this.filter.values[0] = val;
+    this.filter.values = [val as string];
+    this.filterChanged.emit(this.filter);
   }
 
-  public get hasNoValue() {
-    return _.isEmpty(this.filter.values);
+  public parser(data:any) {
+    if (moment(data, 'YYYY-MM-DD', true).isValid()) {
+      return data;
+    } else {
+      return null;
+    }
   }
 
-  public get availableOptions() {
-    return [true, false];
+  public formatter(data:any) {
+    if (moment(data, 'YYYY-MM-DD', true).isValid()) {
+      var d = this.TimezoneService.parseDate(data);
+      return this.TimezoneService.formattedISODate(d);
+    } else {
+      return null;
+    }
+  }
+
+  public get filterDateModelOptions() {
+    return {
+        updateOn: 'default change blur',
+        debounce: {'default': 400, 'change': 0, 'blur': 0}
+    };
   }
 }
-
-function booleanValue():any {
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      filter: '=',
-    },
-    templateUrl: '/components/filters/filter-boolean-value/filter-boolean-value.directive.html',
-    controller: BooleanValueController,
-    bindToController: true,
-    controllerAs: '$ctrl'
-  };
-};
-
-filtersModule.directive('filterBooleanValue', booleanValue);

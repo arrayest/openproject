@@ -26,17 +26,27 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-
-import {filtersModule} from '../../../angular-modules';
 import {QueryFilterInstanceResource} from '../../api/api-v3/hal-resources/query-filter-instance-resource.service';
-import {AbstractDateTimeValueController} from '../abstract-filter-date-time-value/abstract-filter-date-time-value.controller'
+import {AbstractDateTimeValueController} from '../abstract-filter-date-time-value/abstract-filter-date-time-value.controller'
+import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
+import {TimezoneServiceToken} from 'core-app/angular4-transition-utils';
+import {I18nToken} from '../../../angular4-transition-utils';
 
-export class DateTimesValueController extends AbstractDateTimeValueController {
+@Component({
+  selector: 'filter-date-times-value',
+  template: require('!!raw-loader!./filter-date-times-value.component.html')
+})
+export class FilterDateTimesValueComponent extends AbstractDateTimeValueController {
+  @Input() public filter:QueryFilterInstanceResource;
+  @Output() public filterChanged:EventEmitter<QueryFilterInstanceResource>;
 
-  constructor(protected $scope:ng.IScope,
-              protected I18n:op.I18n,
-              protected TimezoneService:any) {
-    super($scope, I18n, TimezoneService);
+  readonly text = {
+    spacer: this.I18n.t('js.filter.value_spacer')
+  };
+
+  constructor(@Inject(I18nToken) readonly I18n:op.I18n,
+              @Inject(TimezoneServiceToken) readonly TimezoneService:any) {
+    super(I18n, TimezoneService);
   }
 
   public get begin() {
@@ -45,6 +55,7 @@ export class DateTimesValueController extends AbstractDateTimeValueController {
 
   public set begin(val) {
     this.filter.values[0] = val || '';
+    this.filterChanged.emit(this.filter);
   }
 
   public get end() {
@@ -53,6 +64,7 @@ export class DateTimesValueController extends AbstractDateTimeValueController {
 
   public set end(val) {
     this.filter.values[1] = val || '';
+    this.filterChanged.emit(this.filter);
   }
 
   public get lowerBoundary() {
@@ -71,19 +83,3 @@ export class DateTimesValueController extends AbstractDateTimeValueController {
     }
   }
 }
-
-function dateTimesValue():any {
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      filter: '=',
-    },
-    templateUrl: '/components/filters/filter-date-times-value/filter-date-times-value.directive.html',
-    controller: DateTimesValueController,
-    bindToController: true,
-    controllerAs: '$ctrl'
-  };
-};
-
-filtersModule.directive('filterDateTimesValue', dateTimesValue);

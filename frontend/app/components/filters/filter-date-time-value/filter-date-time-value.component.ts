@@ -26,63 +26,42 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-
-import {filtersModule} from '../../../angular-modules';
-import {HalResource} from '../../api/api-v3/hal-resources/hal-resource.service';
-import {QueryFilterResource} from '../../api/api-v3/hal-resources/query-filter-resource.service';
 import {QueryFilterInstanceResource} from '../../api/api-v3/hal-resources/query-filter-instance-resource.service';
+import {AbstractDateTimeValueController} from '../abstract-filter-date-time-value/abstract-filter-date-time-value.controller'
+import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
+import {I18nToken, TimezoneServiceToken} from 'core-app/angular4-transition-utils';
 
-export class IntegerValueController {
-  public filter:QueryFilterInstanceResource;
+@Component({
+  selector: 'filter-date-time-value',
+  template: require('!!raw-loader!./filter-date-time-value.component.html')
+})
+export class FilterDateTimeValueComponent extends AbstractDateTimeValueController {
+  @Input() public filter:QueryFilterInstanceResource;
+  @Output() public filterChanged:EventEmitter<QueryFilterInstanceResource>;
 
-  constructor(public $scope:ng.IScope,
-              public I18n:op.I18n) {
+  constructor(@Inject(I18nToken) readonly I18n:op.I18n,
+              @Inject(TimezoneServiceToken) readonly TimezoneService:any) {
+    super(I18n, TimezoneService);
   }
 
   public get value() {
-    return parseInt(this.filter.values[0] as string);
+    return this.filter.values[0];
   }
 
   public set value(val) {
-    if (typeof(val) === 'number') {
-      this.filter.values = [val.toString()];
-    } else {
-      this.filter.values = [];
+    this.filter.values = [val as string];
+    this.filterChanged.emit(this.filter);
+  }
+
+  public get lowerBoundary() {
+    if (this.value && this.TimezoneService.isValidISODateTime(this.value)) {
+      return this.TimezoneService.parseDatetime(this.value);
     }
   }
 
-  public get filterModelOptions() {
-    return {
-      updateOn: 'default blur',
-      debounce: {'default': 400, 'blur': 0 }
-    };
-  };
-
-  public get unit() {
-    switch ((this.filter.schema.filter.allowedValues as QueryFilterResource[])[0].id) {
-      case 'startDate':
-      case 'dueDate':
-      case 'updatedAt':
-      case 'createdAt':
-        return this.I18n.t('js.work_packages.time_relative.days');
-      default:
-        return '';
+  public get upperBoundary() {
+    if (this.value && this.TimezoneService.isValidISODateTime(this.value)) {
+      return this.TimezoneService.parseDatetime(this.value).add(24, 'hours');
     }
   }
 }
-
-function integerValue():any {
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      filter: '=',
-    },
-    templateUrl: '/components/filters/filter-integer-value/filter-integer-value.directive.html',
-    controller: IntegerValueController,
-    bindToController: true,
-    controllerAs: '$ctrl'
-  };
-};
-
-filtersModule.directive('filterIntegerValue', integerValue);

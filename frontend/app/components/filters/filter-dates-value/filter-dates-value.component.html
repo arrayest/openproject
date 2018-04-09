@@ -1,0 +1,31 @@
+<div id="div-values-{{filter.id}}"
+  class="inline-label">
+  <op-date-picker>
+    <input [ngModel]="formatter(begin)"
+           (ngModelChange)="begin = parser($event)"
+           [ngModelOptions]="filterDateModelOptions"
+           [disabled]="isLoading"
+           required
+           id="values-{{filter.id}}-begin"
+           name="v[{{filter.id}}]-begin"
+           class="advanced-filters--date-field"
+           size="10"
+           type="text"/>
+  </op-date-picker>
+
+  <span class="advanced-filters--affix" [textContent]="text.spacer">
+  </span>
+
+  <op-date-picker>
+    <input [ngModel]="end"
+           [ngModelOptions]="filterDateModelOptions"
+           (ngModelChange)="end = parser($event)"
+           [disabled]="isLoading"
+           required
+           id="values-{{filter.id}}-end"
+           name="v[{{filter.id}}]-end"
+           class="advanced-filters--date-field"
+           size="10"
+           type="text"/>
+  </op-date-picker>
+</div>

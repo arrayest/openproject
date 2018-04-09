@@ -26,29 +26,41 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-// This Angular directive will act as an interface to the "upgraded" AngularJS component
-// query-filters
-import {
-  Directive, DoCheck, ElementRef, Inject, Injector, OnChanges, OnDestroy,
-  OnInit, SimpleChanges
-} from '@angular/core';
-import {UpgradeComponent} from '@angular/upgrade/static';
+import {QueryFilterInstanceResource} from '../../api/api-v3/hal-resources/query-filter-instance-resource.service';
+import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
+import {I18nToken} from 'core-app/angular4-transition-utils';
 
-@Directive({selector: 'ng1-query-filters-wrapper'})
-export class Ng1QueryFiltersComponentWrapper extends UpgradeComponent implements OnInit, OnChanges, DoCheck, OnDestroy {
+@Component({
+  selector: 'filter-boolean-value',
+  template: require('!!raw-loader!./filter-boolean-value.component.html')
+})
+export class FilterBooleanValueComponent {
+  @Input() public filter:QueryFilterInstanceResource;
+  @Output() public filterChanged:EventEmitter<QueryFilterInstanceResource>;
 
-  constructor(@Inject(ElementRef) elementRef:ElementRef, @Inject(Injector) injector:Injector) {
-    // We must pass the name of the directive as used by AngularJS to the super
-    super('queryFilters', elementRef, injector);
+  public text = {
+    placeholder: this.I18n.t('js.placeholders.selection'),
+    true: this.I18n.t('js.general_text_Yes'),
+    false: this.I18n.t('js.general_text_No')
   }
 
-  // For this class to work when compiled with AoT, we must implement these lifecycle hooks
-  // because the AoT compiler will not realise that the super class implements them
-  ngOnInit() { super.ngOnInit(); }
+  constructor(@Inject(I18nToken) readonly I18n:op.I18n) {
+  }
 
-  ngOnChanges(changes:SimpleChanges) { super.ngOnChanges(changes); }
+  public get value() {
+    return this.filter.values[0];
+  }
 
-  ngDoCheck() { super.ngDoCheck(); }
+  public set value(val) {
+    this.filter.values[0] = val;
+    this.filterChanged.emit(this.filter);
+  }
 
-  ngOnDestroy() { super.ngOnDestroy(); }
+  public get hasNoValue() {
+    return _.isEmpty(this.filter.values);
+  }
+
+  public get availableOptions() {
+    return [true, false];
+  }
 }

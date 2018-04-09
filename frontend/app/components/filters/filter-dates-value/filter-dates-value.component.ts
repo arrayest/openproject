@@ -26,44 +26,65 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-import {filtersModule} from '../../../angular-modules';
 import {QueryFilterInstanceResource} from '../../api/api-v3/hal-resources/query-filter-instance-resource.service';
+import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
+import {I18nToken, TimezoneServiceToken} from 'core-app/angular4-transition-utils';
 
-export class StringValueController {
-  public filter:QueryFilterInstanceResource;
+@Component({
+  selector: 'filter-dates-value',
+  template: require('!!raw-loader!./filter-dates-value.component.html')
+})
+export class FilterDatesValueComponent {
+  @Input() public filter:QueryFilterInstanceResource;
+  @Output() public filterChanged:EventEmitter<QueryFilterInstanceResource>;
 
-  constructor(public $scope:ng.IScope,
-              public I18n:op.I18n) {
+  readonly text = {
+    spacer: this.I18n.t('js.filter.value_spacer')
+  };
+
+  constructor(@Inject(TimezoneServiceToken) readonly TimezoneService:any,
+              @Inject(I18nToken) readonly I18n:op.I18n) {
   }
 
-  public get value() {
+  public get begin() {
     return this.filter.values[0];
   }
 
-  public set value(val) {
+  public set begin(val) {
     this.filter.values[0] = val || '';
+    this.filterChanged.emit(this.filter);
   }
 
-  public get filterModelOptions() {
+  public get end() {
+    return this.filter.values[1];
+  }
+
+  public set end(val) {
+    this.filter.values[1] = val || '';
+    this.filterChanged.emit(this.filter);
+  }
+
+  public parser(data:any) {
+    if (moment(data, 'YYYY-MM-DD', true).isValid()) {
+      return data;
+    } else {
+      return null;
+    }
+  }
+
+  public formatter(data:any) {
+    if (moment(data, 'YYYY-MM-DD', true).isValid()) {
+      var d = this.TimezoneService.parseDate(data);
+      return this.TimezoneService.formattedISODate(d);
+    } else {
+      return null;
+    }
+  }
+
+  public get filterDateModelOptions() {
     return {
-      updateOn: 'default blur',
-      debounce: {'default': 400, 'blur': 0}
+      updateOn: 'default change blur',
+      debounce: {'default': 400, 'change': 0, 'blur': 0}
     };
   };
 }
-
-function stringValue():any {
-  return {
-    restrict: 'E',
-    replace: true,
-    scope: {
-      filter: '=',
-    },
-    templateUrl: '/components/filters/filter-string-value/filter-string-value.directive.html',
-    controller: StringValueController,
-    bindToController: true,
-    controllerAs: '$ctrl'
-  };
-};
-
-filtersModule.directive('filterStringValue', stringValue);

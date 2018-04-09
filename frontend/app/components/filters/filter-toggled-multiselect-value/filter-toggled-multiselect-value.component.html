@@ -1,0 +1,47 @@
+<div class="inline-label"
+     id="div-values-{{filter.id}}">
+
+  <select filter-value-select
+          *ngIf="!isMultiselect"
+          [(ngModel)]="value"
+          [disabled]="disabled"
+          id="values-{{filter.id}}"
+          name="v[{{filter.id}}][]"
+          class="advanced-filters--select">
+    <option [textContent]="text.placeholder"
+            *ngIf="hasNoValue"
+            value=""
+            disabled></option>
+    <option *ngFor="let value of availableOptions"
+            [textContent]="value.name"
+            [ngValue]="value"></option>
+  </select>
+
+  <select multiple
+          filter-value-select
+          *ngIf="isMultiselect"
+          [(ngModel)]="value"
+          [disabled]="disabled"
+          id="values-{{filter.id}}"
+          name="v[{{filter.id}}][]"
+          class="advanced-filters--select">
+    <option value=""
+            disabled
+            [textContent]="text.placeholder"
+            *ngIf="hasNoValue"></option>
+    <option *ngFor="let value of availableOptions"
+            [textContent]="value.name"
+            [ngValue]="value"></option>
+  </select>
+
+  <a href
+     class="form-label no-decoration-on-hover -transparent"
+     (click)="toggleMultiselect()">
+    <op-icon *ngIf="isMultiselect"
+             icon-classes="icon4 icon-minus2"
+             [icon-title]="text.disableMulti"></op-icon>
+    <op-icon *ngIf="!isMultiselect"
+             icon-classes="icon4 icon-add"
+             [icon-title]="text.enableMulti"></op-icon>
+  </a>
+</div>

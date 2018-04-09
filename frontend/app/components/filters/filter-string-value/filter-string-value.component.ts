@@ -26,7 +26,38 @@
 // See doc/COPYRIGHT.rdoc for more details.
 //++
 
-import {filtersModule} from '../../angular-modules';
+import {QueryFilterInstanceResource} from '../../api/api-v3/hal-resources/query-filter-instance-resource.service';
+import {Component, EventEmitter, Inject, Input, Output} from '@angular/core';
+import {I18nToken} from 'core-app/angular4-transition-utils';
 
-filtersModule
-  .constant('ADD_FILTER_SELECT_INDEX', -1)
+@Component({
+  selector: 'filter-string-value',
+  template: require('!!raw-loader!./filter-string-value.component.html')
+})
+export class FilterStringValueComponent {
+  @Input() public filter:QueryFilterInstanceResource;
+  @Output() public filterChanged:EventEmitter<QueryFilterInstanceResource>;
+
+  readonly text = {
+    enter_text: this.I18n.t('js.work_packages.description_enter_text')
+  };
+
+  constructor(@Inject(I18nToken) readonly I18n:op.I18n) {
+  }
+
+  public get value() {
+    return this.filter.values[0];
+  }
+
+  public set value(val) {
+    this.filter.values[0] = val || '';
+    this.filterChanged.emit(this.filter);
+  }
+
+  public get filterModelOptions() {
+    return {
+      updateOn: 'default blur',
+      debounce: { 'default': 400, 'blur': 0 }
+    };
+  }
+}
